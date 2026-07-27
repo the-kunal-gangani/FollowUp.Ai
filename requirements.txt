@@ -1,0 +1,4 @@
+customtkinter
+ollama
+groq
+faster-whisper

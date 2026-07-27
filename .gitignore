@@ -1,0 +1,3 @@
+__pycache__/
+*.pyc
+settings.jsongit pull origin main --allow-unrelated-histories

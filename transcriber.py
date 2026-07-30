@@ -1,17 +1,39 @@
+import os
 from faster_whisper import WhisperModel
 
 _model_cache = {}
 
 
-def get_model(model_size="base"):
-    if model_size not in _model_cache:
-        _model_cache[model_size] = WhisperModel(model_size, device="cpu", compute_type="int8")
-    return _model_cache[model_size]
+def _resolve_model_name(model_size, language):
+    if language == "en" and not model_size.endswith(".en"):
+        return f"{model_size}.en"
+    return model_size
 
 
-def transcribe_audio(audio_path, model_size="base", progress_callback=None):
-    model = get_model(model_size)
-    segments, info = model.transcribe(audio_path, beam_size=5)
+def get_model(model_size="base", language="en"):
+    resolved = _resolve_model_name(model_size, language)
+    if resolved not in _model_cache:
+        _model_cache[resolved] = WhisperModel(
+            resolved,
+            device="cpu",
+            compute_type="int8",
+            cpu_threads=max(os.cpu_count() or 4, 1),
+        )
+    return _model_cache[resolved]
+
+
+def transcribe_audio(audio_path, model_size="base", language="en", progress_callback=None):
+    model = get_model(model_size, language)
+
+    transcribe_kwargs = {
+        "beam_size": 1,
+        "vad_filter": True,
+        "vad_parameters": {"min_silence_duration_ms": 500},
+    }
+    if language:
+        transcribe_kwargs["language"] = language
+
+    segments, info = model.transcribe(audio_path, **transcribe_kwargs)
 
     text_parts = []
     for segment in segments:

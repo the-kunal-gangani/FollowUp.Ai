@@ -16,6 +16,7 @@ DEFAULTS = {
     "groq_api_key": "",
     "groq_model": "llama-3.3-70b-versatile",
     "whisper_model_size": "base",
+    "transcription_language": "en",
 }
 
 

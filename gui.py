@@ -68,7 +68,21 @@ class SettingsWindow(ctk.CTkToplevel):
         ).pack(anchor="w", pady=(0, 4))
         self.whisper_menu = ctk.CTkOptionMenu(container, values=WHISPER_MODEL_SIZES)
         self.whisper_menu.set(self.settings.get("whisper_model_size", "base"))
-        self.whisper_menu.pack(fill="x", pady=(4, 20))
+        self.whisper_menu.pack(fill="x", pady=(4, 14))
+
+        ctk.CTkLabel(
+            container, text="Transcription Language",
+            font=ctk.CTkFont(size=13, weight="bold")
+        ).pack(anchor="w")
+        ctk.CTkLabel(
+            container, text="English is noticeably faster (smaller, specialized model)",
+            font=ctk.CTkFont(size=10), text_color="#718096"
+        ).pack(anchor="w", pady=(0, 4))
+        self.language_menu = ctk.CTkOptionMenu(container, values=["English (fastest)", "Auto-detect"])
+        self.language_menu.set(
+            "English (fastest)" if self.settings.get("transcription_language", "en") == "en" else "Auto-detect"
+        )
+        self.language_menu.pack(fill="x", pady=(4, 20))
 
         ctk.CTkButton(
             container, text="Save", height=40, fg_color="#2F855A", hover_color="#276749",
@@ -178,6 +192,7 @@ class SettingsWindow(ctk.CTkToplevel):
             "groq_api_key": self.groq_key_entry.get().strip(),
             "groq_model": self.groq_model_menu.get(),
             "whisper_model_size": self.whisper_menu.get(),
+            "transcription_language": "en" if self.language_menu.get() == "English (fastest)" else None,
         }
         success, error = save_settings(new_settings)
         if not success:
@@ -308,6 +323,7 @@ class MeetingExtractorApp:
                 text, language = transcribe_audio(
                     audio_path,
                     model_size=self.settings.get("whisper_model_size", "base"),
+                    language=self.settings.get("transcription_language", "en"),
                     progress_callback=report_progress,
                 )
                 self.root.after(0, self._on_transcribed, text, language, None)

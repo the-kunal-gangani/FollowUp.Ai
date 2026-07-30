@@ -340,6 +340,20 @@ class MeetingExtractorApp:
             return
 
         self.transcript_box.delete("1.0", "end")
+
+        if not text or not text.strip():
+            self.status_label.configure(
+                text="No speech detected in this audio. Check the file plays correctly and has audible speech.",
+                text_color="#F6AD55"
+            )
+            messagebox.showwarning(
+                "No Speech Detected",
+                "The audio was processed, but no speech was detected in it.\n\n"
+                "This can happen if the recording is too quiet, silent, or in an unexpected format.\n"
+                "Try a different file, or check the audio plays correctly first."
+            )
+            return
+
         self.transcript_box.insert("1.0", text)
         self.status_label.configure(
             text=f"Transcribed successfully (detected language: {language}).", text_color="#68D391"

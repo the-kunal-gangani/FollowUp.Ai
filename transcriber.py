@@ -22,14 +22,11 @@ def get_model(model_size="base", language="en"):
     return _model_cache[resolved]
 
 
-def transcribe_audio(audio_path, model_size="base", language="en", progress_callback=None):
-    model = get_model(model_size, language)
-
-    transcribe_kwargs = {
-        "beam_size": 1,
-        "vad_filter": True,
-        "vad_parameters": {"min_silence_duration_ms": 500},
-    }
+def _run_transcription(model, audio_path, language, use_vad, progress_callback):
+    transcribe_kwargs = {"beam_size": 1}
+    if use_vad:
+        transcribe_kwargs["vad_filter"] = True
+        transcribe_kwargs["vad_parameters"] = {"min_silence_duration_ms": 500}
     if language:
         transcribe_kwargs["language"] = language
 
@@ -42,3 +39,18 @@ def transcribe_audio(audio_path, model_size="base", language="en", progress_call
             progress_callback(segment.end, info.duration)
 
     return " ".join(text_parts).strip(), info.language
+
+
+def transcribe_audio(audio_path, model_size="base", language="en", progress_callback=None):
+    model = get_model(model_size, language)
+
+    text, detected_language = _run_transcription(
+        model, audio_path, language, use_vad=True, progress_callback=progress_callback
+    )
+
+    if not text:
+        text, detected_language = _run_transcription(
+            model, audio_path, language, use_vad=False, progress_callback=progress_callback
+        )
+
+    return text, detected_language

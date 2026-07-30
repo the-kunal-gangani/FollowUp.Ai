@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import threading
 import csv
+import sys
 from pathlib import Path
 
 from transcriber import transcribe_audio
@@ -27,13 +28,14 @@ class SettingsWindow(ctk.CTkToplevel):
         super().__init__(parent)
         self.on_saved = on_saved
         self.title("Settings")
-        self.geometry("480x520")
+        self.geometry("480x600")
+        self.minsize(420, 400)
         self.transient(parent)
         self.grab_set()
 
         self.settings = load_settings()
 
-        container = ctk.CTkFrame(self, fg_color="transparent")
+        container = ctk.CTkScrollableFrame(self, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=20, pady=20)
 
         ctk.CTkLabel(
@@ -206,8 +208,9 @@ class SettingsWindow(ctk.CTkToplevel):
 class MeetingExtractorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Meeting Action Extractor")
+        self.root.title("FollowUp.AI")
         self.root.geometry("900x680")
+        self._set_window_icon()
         self.root.minsize(760, 560)
 
         self.settings = load_settings()
@@ -220,13 +223,26 @@ class MeetingExtractorApp:
         self._build_status_row()
         self._build_results_area()
 
+    def _set_window_icon(self):
+        if getattr(sys, "frozen", False):
+            base_dir = Path(sys.executable).parent
+        else:
+            base_dir = Path(__file__).parent
+
+        icon_path = base_dir / "icon.ico"
+        if icon_path.exists():
+            try:
+                self.root.iconbitmap(str(icon_path))
+            except Exception:
+                pass
+
     def _build_header(self):
         header = ctk.CTkFrame(self.root, fg_color="#1A202C", corner_radius=0, height=80)
         header.pack(fill="x")
         header.pack_propagate(False)
 
         ctk.CTkLabel(
-            header, text="Meeting Action Extractor",
+            header, text="FollowUp.AI",
             font=ctk.CTkFont(size=24, weight="bold"), text_color="#4FD1C5"
         ).pack(side="left", padx=24, pady=20)
 
